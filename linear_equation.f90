@@ -5,29 +5,25 @@
 
 subroutine set_A(mat)
   double precision, intent(out) :: mat(:,:)
-  mat(1,1:5) = (/-5.86d0, 3.99d0, -5.93d0,-2.82d0, 7.69d0/)
-  mat(2,1:5) = (/3.99d0, 4.46d0, 2.58d0, 4.42d0, 4.61d0/)
-  mat(3,1:5) = (/-5.93d0, 2.58d0, -8.52d0, 8.57d0, 7.69d0/)
-  mat(4,1:5) = (/-2.82d0, 4.42d0, 8.57d0, 3.72d0, 8.07d0/)
-  mat(5,1:5) = (/7.69d0, 4.61d0, 7.69d0, 8.07d0, 9.83d0/)
+  mat = reshape( (/1.80d0, 5.25d0, 1.58d0,-1.11d0, &
+                 2.88d0,-2.95d0,-2.69d0,-0.66d0, &
+                 2.05d0,-0.95d0,-2.90d0,-0.59d0, &
+                -0.89d0,-3.80d0,-1.04d0, 0.80d0/), &
+              (/4,4/) )
 end subroutine set_A
 
 subroutine set_B(mat)
-  double precision, intent(out) :: mat(:,:)
-  mat(1,1:3) = (/1.32d0, -6.33d0, -8.77d0/)
-  mat(2,1:3) = (/2.22d0, 1.69d0, -8.33d0/)
-  mat(3,1:3) = (/0.12d0, -1.56d0, 9.54d0/)
-  mat(4,1:3) = (/-6.41d0, -9.49d0, 9.56d0/)
-  mat(5,1:3) = (/6.33d0, -3.67d0, 7.48d0/)
+  double precision, intent(out) :: mat(:)
+  mat = (/ 9.52d0, 24.35d0, 0.77d0, -6.22d0 /)
 end subroutine set_B
 
-function dsysv_lapack(A,B) result(X)
+function dgesv_lapack(A,B) result(X)
   implicit none
   double precision, intent(in) :: A(:,:)
-  double precision, intent(in) :: B(:,:)
-  double precision :: X(size(A,1),size(B,2))
+  double precision, intent(in) :: B(:)
+  double precision :: X(size(A,1))
   character(len=1), parameter :: UPLO = 'U' ! 上三角要素を使用
-  integer :: N, NRHS
+  integer :: N
   integer, allocatable :: IPIV(:)
   double precision :: LW
   double precision, allocatable :: WORK(:)
@@ -36,23 +32,16 @@ function dsysv_lapack(A,B) result(X)
 
   ! 係数/右辺行列のサイズ
   N = size(A,1)
-  NRHS = size(B,2)
 
   allocate(IPIV(N))
 
-  ! 最適なワークスペース用配列を確保
-  call DSYSV(UPLO, N, NRHS, A, N, IPIV, B, N, LW, -1, INFO)
-  LWORK = int(LW)
-  allocate(WORK(1:LWORK))
-
   !計算
-  call DSYSV(UPLO, N, NRHS, A, N, IPIV, B, N, WORK, LWORK, INFO)
-  deallocate(WORK)
+  call dgesv(N, 1, A, N, IPIV, B, N, INFO)
 
   X = B
 
   return
-end function dsysv_lapack
+end function dgesv_lapack
 
 subroutine show_mat(mat)
     implicit none
@@ -70,38 +59,49 @@ subroutine show_mat(mat)
 
 end subroutine show_mat
 
+subroutine show_vec(vec)
+    implicit none
+    double precision, intent(in) :: vec(:)
+    integer :: m, i
+    m = size(vec,1)
+
+    do i = 1, m
+        write(*,'(f9.3)') vec(i)
+      write(*,*) ''
+    end do
+
+end subroutine show_vec
+
 
 program main
   implicit none
   interface
-      function dsysv_lapack(A, B)
+      function dgesv_lapack(A, B)
           double precision, intent(in) :: A(:,:)
-          double precision, intent(in) :: B(:,:)
-          double precision :: dsysv_lapack(size(A,1),size(B,2))
-      end function dsysv_lapack
+          double precision, intent(in) :: B(:)
+          double precision :: dgesv_lapack(size(A,1))
+      end function dgesv_lapack
 
       subroutine set_A(A)
           double precision, intent(out) :: A(:,:)
       end subroutine set_A
 
       subroutine set_B(A)
-          double precision, intent(out) :: A(:,:)
+          double precision, intent(out) :: A(:)
       end subroutine set_B
 
       subroutine show_mat(A)
           double precision, intent(in) :: A(:,:)
       end subroutine show_mat
+
+      subroutine show_vec(A)
+          double precision, intent(in) :: A(:)
+      end subroutine show_vec
   end interface
 
-  double precision, dimension(5,5) :: A
-  double precision, dimension(5,3) :: B
-  double precision, dimension(5,3) :: X
-  integer m, n, o
-  integer i, j
-
-  m = size(A,1)
-  n = size(A,2)
-  o = size(B,2)
+  double precision, dimension(4,4) :: A
+  double precision, dimension(4) :: B
+  double precision, dimension(4) :: X
 
   ! 係数行列の定義
   call set_A(A)
@@ -109,11 +109,11 @@ program main
 
   !右辺行列の定義
   call set_B(B)
-  call show_mat(B)
+  call show_vec(B)
 
   !行列方程式を解く
-  X = dsysv_lapack(A,B)
-  call show_mat(X)
+  X = dgesv_lapack(A,B)
+  call show_vec(X)
 
 
 end program main
