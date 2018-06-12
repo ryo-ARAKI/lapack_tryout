@@ -1,51 +1,24 @@
 !対称行列を係数行列とする連立一次方程式を解く
+! 実行:
+! gfortran -o test linear_equation.f90 -llapack -lblas
+! ./test
 
 subroutine set_A(mat)
   double precision, intent(out) :: mat(:,:)
-  mat(1,1) = -5.86d0
-  mat(1,2) = 3.99d0
-  mat(1,3) = -5.93d0
-  mat(1,4) = -2.82d0
-  mat(1,5) = 7.69d0
-  mat(2,1) = 3.99d0
-  mat(2,2) = 4.46d0
-  mat(2,3) = 2.58d0
-  mat(2,4) = 4.42d0
-  mat(2,5) = 4.61d0
-  mat(3,1) = -5.93d0
-  mat(3,2) = 2.58d0
-  mat(3,3) = -8.52d0
-  mat(3,4) = 8.57d0
-  mat(3,5) = 7.69d0
-  mat(4,1) = -2.82d0
-  mat(4,2) = 4.42d0
-  mat(4,3) = 8.57d0
-  mat(4,4) = 3.72d0
-  mat(4,5) = 8.07d0
-  mat(5,1) = 7.69d0
-  mat(5,2) = 4.61d0
-  mat(5,3) = 7.69d0
-  mat(5,4) = 8.07d0
-  mat(5,5) = 9.83d0
+  mat(1,1:5) = (/-5.86d0, 3.99d0, -5.93d0,-2.82d0, 7.69d0/)
+  mat(2,1:5) = (/3.99d0, 4.46d0, 2.58d0, 4.42d0, 4.61d0/)
+  mat(3,1:5) = (/-5.93d0, 2.58d0, -8.52d0, 8.57d0, 7.69d0/)
+  mat(4,1:5) = (/-2.82d0, 4.42d0, 8.57d0, 3.72d0, 8.07d0/)
+  mat(5,1:5) = (/7.69d0, 4.61d0, 7.69d0, 8.07d0, 9.83d0/)
 end subroutine set_A
 
 subroutine set_B(mat)
   double precision, intent(out) :: mat(:,:)
-  mat(1,1) = 1.32d0
-  mat(1,2) = -6.33d0
-  mat(1,3) = -8.77d0
-  mat(2,1) = 2.22d0
-  mat(2,2) = 1.69d0
-  mat(2,3) = -8.33d0
-  mat(3,1) = 0.12d0
-  mat(3,2) = -1.56d0
-  mat(3,3) = 9.54d0
-  mat(4,1) = -6.41d0
-  mat(4,2) = -9.49d0
-  mat(4,3) = 9.56d0
-  mat(5,1) = 6.33d0
-  mat(5,2) = -3.67d0
-  mat(5,3) = 7.48d0
+  mat(1,1:3) = (/1.32d0, -6.33d0, -8.77d0/)
+  mat(2,1:3) = (/2.22d0, 1.69d0, -8.33d0/)
+  mat(3,1:3) = (/0.12d0, -1.56d0, 9.54d0/)
+  mat(4,1:3) = (/-6.41d0, -9.49d0, 9.56d0/)
+  mat(5,1:3) = (/6.33d0, -3.67d0, 7.48d0/)
 end subroutine set_B
 
 function dsysv_lapack(A,B) result(X)
@@ -81,6 +54,22 @@ function dsysv_lapack(A,B) result(X)
   return
 end function dsysv_lapack
 
+subroutine show_mat(mat)
+    implicit none
+    double precision, intent(in) :: mat(:,:)
+    integer :: m, n, i, j
+    m = size(mat,1)
+    n = size(mat,2)
+
+    do i = 1, m
+      do j = 1, n
+        write(*,'(f9.3)', advance='no') mat(i,j)
+      end do
+      write(*,*) ''
+    end do
+
+end subroutine show_mat
+
 
 program main
   implicit none
@@ -98,6 +87,10 @@ program main
       subroutine set_B(A)
           double precision, intent(out) :: A(:,:)
       end subroutine set_B
+
+      subroutine show_mat(A)
+          double precision, intent(in) :: A(:,:)
+      end subroutine show_mat
   end interface
 
   double precision, dimension(5,5) :: A
@@ -112,30 +105,15 @@ program main
 
   ! 係数行列の定義
   call set_A(A)
-  do i = 1, m
-    do j = 1, n
-      write(*,'(f9.3)', advance='no') A(i,j)
-    end do
-    write(*,*) ''
-  end do
+  call show_mat(A)
 
   !右辺行列の定義
   call set_B(B)
-  do i = 1, n
-    do j = 1, o
-      write(*,'(f9.3)', advance='no') B(i,j)
-    end do
-    write(*,*) ''
-  end do
+  call show_mat(B)
 
   !行列方程式を解く
   X = dsysv_lapack(A,B)
-  do i = 1, m
-    do j = 1, o
-      write(*,'(f9.3)', advance='no') X(i,j)
-    end do
-    write(*,*) ''
-  end do
+  call show_mat(X)
 
 
 end program main
