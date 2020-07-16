@@ -2,6 +2,8 @@
 ! 実行:
 ! gfortran -o test linear_symmetry_equation.f90 -llapack -lblas
 ! ./test
+! NIFS Plasma Simulator
+! nfort -o exec_linear_symmetry_equation linear_symmetry_equation.f90 -llapack -lblas_sequential && qsub script_linear_symmetry_equation.sh
 
 subroutine set_A(mat)
   double precision, intent(out) :: mat(:,:)

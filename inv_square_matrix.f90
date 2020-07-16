@@ -3,6 +3,8 @@
 ! 実行:
 ! gfortran -o test inv_matrix.f90 -llapack -lblas
 ! ./test
+! NIFS Plasma Simulator
+! nfort -o exec_inv_square_matrix inv_square_matrix.f90 -llapack -lblas_sequential && qsub script_inv_square_matrix.sh
 
 
 function inv_lapack(mat) result(mat_I)

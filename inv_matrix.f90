@@ -3,6 +3,8 @@
 ! 実行:
 ! gfortran -o test inv_matrix.f90 -llapack -lblas
 ! ./test
+! NIFS Plasma Simulator
+! nfort -o exec_inv_matrix inv_matrix.f90 -llapack -lblas_sequential && qsub script_inv_matrix.sh
 
 ! --------------------------------
 ! calculate inverse of matrix A(m,n)
